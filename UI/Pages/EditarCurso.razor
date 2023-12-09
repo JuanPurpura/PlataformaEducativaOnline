@@ -1,0 +1,78 @@
+﻿@page "/editarcurso/{id}"
+@using Model
+@inject NavigationManager NavigationManager
+
+<PageTitle>Editar Curso</PageTitle>
+
+<h1>Editar Curso</h1>
+
+@if (curso != null)
+{
+    <form>
+        <div class="mb-3">
+            <label for="nombre" class="form-label">Nombre:</label>
+            <input type="text" class="form-control" id="nombre" @bind="curso.CurNombre" />
+        </div>
+        <div class="mb-3">
+            <label for="descripcion" class="form-label">Descripción:</label>
+            <input type="text" class="form-control" id="descripcion" @bind="curso.CurDescripcion" />
+        </div>
+
+        <div class="mb-3">
+            <label for="profesor" class="form-label">Profesor:</label>
+            <select class="form-select" id="profesor" @bind="curso.CurProfesorId">
+                @foreach (var profesor in profesores)
+                {
+                    <option value="@profesor.ProId">@profesor.ProNombre</option>
+                }
+            </select>
+        </div>
+
+        <button type="button" class="btn btn-success" @onclick="ConfirmarEdicion">Confirmar</button>
+        <button type="button" class="btn btn-danger" @onclick="CancelarEdicion">Cancelar</button>
+    </form>
+}
+
+@code {
+    [Parameter]
+    public string Id { get; set; }
+
+    private Curso curso;
+    private List<Profesore> profesores = new List<Profesore>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        var httpClient = new HttpClient();
+
+        var cursoResponse = await httpClient.GetFromJsonAsync<Curso>($"http://host.docker.internal:9000/api/Cursos/{Id}");
+        if (cursoResponse != null)
+        {
+            curso = cursoResponse;
+        }
+
+        var profesoresResponse = await httpClient.GetFromJsonAsync<List<Profesore>>("http://host.docker.internal:5000/api/Profesores");
+        if (profesoresResponse != null)
+        {
+            profesores = profesoresResponse;
+        }
+    }
+
+    private async Task ConfirmarEdicion()
+    {
+        var httpClient = new HttpClient();
+
+        var response = await httpClient.PutAsJsonAsync($"http://host.docker.internal:9000/api/Cursos/{Id}", curso);
+
+        if (response.IsSuccessStatusCode)
+        {
+            // Navegar de vuelta a la página de reporte
+            NavigationManager.NavigateTo("/reporte");
+        }
+    }
+
+    private void CancelarEdicion()
+    {
+        // Navegar de vuelta a la página de reporte sin realizar cambios
+        NavigationManager.NavigateTo("/reporte");
+    }
+}

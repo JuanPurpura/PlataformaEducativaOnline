@@ -1,0 +1,29 @@
+version: '3.4'
+
+services:
+  microserusuarios:
+    image: ${DOCKER_REGISTRY-}microserusuarios
+    build:
+      context: .
+      dockerfile: microSerUsuarios/Dockerfile
+
+  microsercursos:
+    image: ${DOCKER_REGISTRY-}microsercursos
+    build:
+      context: .
+      dockerfile: microSerCursos/Dockerfile
+
+
+  microsercalificaciones:
+    image: ${DOCKER_REGISTRY-}microsercalificaciones
+    build:
+      context: .
+      dockerfile: microSerCalificaciones/Dockerfile
+
+
+  ui:
+    image: ${DOCKER_REGISTRY-}ui
+    build:
+      context: .
+      dockerfile: UI/Dockerfile
+

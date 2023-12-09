@@ -1,0 +1,61 @@
+﻿@page "/editarprofesor/{id}"
+@using Model
+@inject NavigationManager NavigationManager
+
+<PageTitle>Editar Profesor</PageTitle>
+
+<h1>Editar Profesor</h1>
+
+@if (profesor != null)
+{
+    <form>
+        <div class="mb-3">
+            <label for="nombre" class="form-label">Nombre:</label>
+            <input type="text" class="form-control" id="nombre" @bind="profesor.ProNombre" />
+        </div>
+        <div class="mb-3">
+            <label for="correo" class="form-label">Correo:</label>
+            <input type="text" class="form-control" id="correo" @bind="profesor.ProCorreo" />
+        </div>
+
+        <button type="button" class="btn btn-success" @onclick="ConfirmarEdicion">Confirmar</button>
+        <button type="button" class="btn btn-danger" @onclick="CancelarEdicion">Cancelar</button>
+    </form>
+}
+
+@code {
+    [Parameter]
+    public string Id { get; set; }
+
+    private Profesore profesor;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var httpClient = new HttpClient();
+
+        var profesorResponse = await httpClient.GetFromJsonAsync<Profesore>($"http://host.docker.internal:5000/api/Profesores/{Id}");
+        if (profesorResponse != null)
+        {
+            profesor = profesorResponse;
+        }
+    }
+
+    private async Task ConfirmarEdicion()
+    {
+        var httpClient = new HttpClient();
+
+        var response = await httpClient.PutAsJsonAsync($"http://host.docker.internal:5000/api/Profesores/{Id}", profesor);
+
+        if (response.IsSuccessStatusCode)
+        {
+            // Navegar de vuelta a la página de reporte
+            NavigationManager.NavigateTo("/reporte");
+        }
+    }
+
+    private void CancelarEdicion()
+    {
+        // Navegar de vuelta a la página de reporte sin realizar cambios
+        NavigationManager.NavigateTo("/reporte");
+    }
+}

@@ -1,0 +1,89 @@
+﻿@page "/editarcalificacion/{id}"
+@using Model
+@inject NavigationManager NavigationManager
+
+<PageTitle>Editar Calificación</PageTitle>
+
+<h1>Editar Calificación</h1>
+
+@if (calificacion != null)
+{
+    <form>
+        <div class="mb-3">
+            <label for="estudiante" class="form-label">Estudiante:</label>
+            <select class="form-select" id="estudiante" @bind="calificacion.CalEstudianteId">
+                @foreach (var estudiante in estudiantes)
+                {
+                    <option value="@estudiante.EstId">@estudiante.EstNombre</option>
+                }
+            </select>
+        </div>
+        <div class="mb-3">
+            <label for="curso" class="form-label">Curso:</label>
+            <select class="form-select" id="curso" @bind="calificacion.CalCursoId">
+                @foreach (var curso in cursos)
+                {
+                    <option value="@curso.CurId">@curso.CurNombre</option>
+                }
+            </select>
+        </div>
+        <div class="mb-3">
+            <label for="nota" class="form-label">Nota:</label>
+            <input type="number" class="form-control" id="nota" @bind="calificacion.CalNota" />
+        </div>
+
+        <button type="button" class="btn btn-success" @onclick="ConfirmarEdicion">Confirmar</button>
+        <button type="button" class="btn btn-danger" @onclick="CancelarEdicion">Cancelar</button>
+    </form>
+}
+
+@code {
+    [Parameter]
+    public string Id { get; set; }
+
+    private Calificacione calificacion;
+    private List<Estudiante> estudiantes = new List<Estudiante>();
+    private List<Curso> cursos = new List<Curso>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        var httpClient = new HttpClient();
+
+        var calificacionResponse = await httpClient.GetFromJsonAsync<Calificacione>($"http://host.docker.internal:10000/api/Calificaciones/{Id}");
+        if (calificacionResponse != null)
+        {
+            calificacion = calificacionResponse;
+        }
+
+        var estudiantesResponse = await httpClient.GetFromJsonAsync<List<Estudiante>>("http://host.docker.internal:5000/api/Estudiantes");
+        if (estudiantesResponse != null)
+        {
+            estudiantes = estudiantesResponse;
+        }
+
+        var cursosResponse = await httpClient.GetFromJsonAsync<List<Curso>>("http://host.docker.internal:9000/api/Cursos");
+        if (cursosResponse != null)
+        {
+            cursos = cursosResponse;
+        }
+    }
+
+    private async Task ConfirmarEdicion()
+    {
+        var httpClient = new HttpClient();
+
+        var response = await httpClient.PutAsJsonAsync($"http://host.docker.internal:10000/api/Calificaciones/{Id}", calificacion);
+
+        if (response.IsSuccessStatusCode)
+        {
+            // Navegar de vuelta a la página de reporte
+            NavigationManager.NavigateTo("/reporte");
+        }
+    }
+
+    private void CancelarEdicion()
+    {
+        // Navegar de vuelta a la página de reporte sin realizar cambios
+        NavigationManager.NavigateTo("/reporte");
+    }
+}

@@ -1,0 +1,254 @@
+﻿@page "/"
+@using Model;
+
+<PageTitle>Altas</PageTitle>
+
+<div class="container">
+    <h1 class="mt-4">Ingresar Usuario, Curso o Calificación</h1>
+
+    <div class="card mt-4">
+        <div class="card-body">
+            <h2 class="card-title">Alta de Usuario</h2>
+            <form>
+                <div class="mb-3">
+                    <label for="nombre" class="form-label">Nombre:</label>
+                    <input type="text" class="form-control" id="nombre" @bind="nombreUsuario" />
+                </div>
+                <div class="mb-3">
+                    <label for="correo" class="form-label">Correo:</label>
+                    <input type="text" class="form-control" id="correo" @bind="correoUsuario" />
+                </div>
+                <div class="mb-3">
+                    <label for="tipoUsuario" class="form-label">Tipo de Usuario:</label>
+                    <select class="form-select" id="tipoUsuario" @bind="tipoUsuario">
+                        <option value="Estudiante">Estudiante</option>
+                        <option value="Profesor">Profesor</option>
+                    </select>
+                </div>
+                <div>
+                    <button type="button" class="btn btn-primary" @onclick="AgregarUsuario">Agregar Usuario</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    @if (mostrarMensajeUsuario)
+    {
+        <div class="alert alert-success mt-4">
+            <p class="mb-0">El usuario @nombreUsuario con correo @correoUsuario ha sido agregado como @tipoUsuario</p>
+        </div>
+    }
+    else if (mostrarMensajeUsuarioError)
+    {
+        <div class="alert alert-danger mt-4">
+            <p class="mb-0">Hubo un problema al intentar crear el usuario. Por favor, inténtalo nuevamente.</p>
+        </div>
+    }
+
+    <!-- Alta de Curso -->
+    <div class="card mt-4">
+        <div class="card-body">
+            <h2 class="card-title">Alta de Curso</h2>
+            <form>
+                <div class="mb-3">
+                    <label for="nombreCurso" class="form-label">Nombre del Curso:</label>
+                    <input type="text" class="form-control" id="nombreCurso" @bind="nombreCurso" />
+                </div>
+                <div class="mb-3">
+                    <label for="descripcionCurso" class="form-label">Descripción del Curso:</label>
+                    <input type="text" class="form-control" id="descripcionCurso" @bind="descripcionCurso" />
+                </div>
+                <div class="mb-3">
+                    <label for="profesorCurso" class="form-label">Profesor:</label>
+                    <select class="form-select" id="profesorCurso" @bind="profesorCursoId">
+                        @foreach (var profesor in profesores)
+                        {
+                            <option value="@profesor.ProId">@profesor.ProNombre</option>
+                        }
+                    </select>
+                </div>
+                <div>
+                    <button type="button" class="btn btn-primary" @onclick="AgregarCurso">Agregar Curso</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    @if (mostrarMensajeCurso)
+    {
+        <div class="alert alert-success mt-4">
+            <p class="mb-0">El curso @nombreCurso ha sido agregado con éxito.</p>
+        </div>
+    }
+    else if (mostrarMensajeCursoError)
+    {
+        <div class="alert alert-danger mt-4">
+            <p class="mb-0">Hubo un problema al intentar crear el curso. Por favor, inténtalo nuevamente.</p>
+        </div>
+    }
+
+    <!-- Alta de Calificación -->
+    <div class="card mt-4">
+        <div class="card-body">
+            <h2 class="card-title">Alta de Calificación</h2>
+            <form>
+                <div class="mb-3">
+                    <label for="estudiante" class="form-label">Estudiante:</label>
+                    <select class="form-select" id="estudiante" @bind="calEstudianteId">
+                        @foreach (var estudiante in estudiantes)
+                        {
+                            <option value="@estudiante.EstId">@estudiante.EstNombre</option>
+                        }
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label for="curso" class="form-label">Curso:</label>
+                    <select class="form-select" id="curso" @bind="calCursoId">
+                        @foreach (var curso in cursos)
+                        {
+                            <option value="@curso.CurId">@curso.CurNombre</option>
+                        }
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label for="nota" class="form-label">Nota (0-10):</label>
+                    <input type="number" class="form-control" id="nota" @bind="calNota" min="0" max="10" />
+                </div>
+                <div>
+                    <button type="button" class="btn btn-primary" @onclick="AgregarCalificacion">Agregar Calificación</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    @if (mostrarMensajeCalificacion)
+    {
+        <div class="alert alert-success mt-4">
+            <p class="mb-0">La calificación para el estudiante ha sido registrada con éxito.</p>
+        </div>
+    }
+    else if (mostrarMensajeCalificacionError)
+    {
+        <div class="alert alert-danger mt-4">
+            <p class="mb-0">Hubo un problema al intentar registrar la calificación. Por favor, inténtalo nuevamente.</p>
+        </div>
+    }
+</div>
+
+@code {
+    private string nombreUsuario = "";
+    private string correoUsuario = "";
+    private string tipoUsuario = "Estudiante";
+    private bool mostrarMensajeUsuario = false;
+    private bool mostrarMensajeUsuarioError = false;
+
+    private string nombreCurso = "";
+    private string descripcionCurso = "";
+    private int profesorCursoId = 1;
+    List<Profesore> profesores = new List<Profesore>();
+    private bool mostrarMensajeCurso = false;
+    private bool mostrarMensajeCursoError = false;
+
+    private int calEstudianteId;
+    private int calCursoId;
+    private int calNota;
+    List<Estudiante> estudiantes = new List<Estudiante>();
+    List<Curso> cursos = new List<Curso>();
+    private bool mostrarMensajeCalificacion = false;
+    private bool mostrarMensajeCalificacionError = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var httpClient = new HttpClient();
+
+        var estudiantesResponse = await httpClient.GetFromJsonAsync<List<Estudiante>>("http://host.docker.internal:5000/api/Estudiantes");
+        if (estudiantesResponse != null)
+        {
+            estudiantes = estudiantesResponse;
+        }
+
+        var profesoresResponse = await httpClient.GetFromJsonAsync<List<Profesore>>("http://host.docker.internal:5000/api/Profesores");
+        if (profesoresResponse != null)
+        {
+            profesores = profesoresResponse;
+        }
+
+        var cursosResponse = await httpClient.GetFromJsonAsync<List<Curso>>("http://host.docker.internal:9000/api/Cursos");
+        if (cursosResponse != null)
+        {
+            cursos = cursosResponse;
+        }
+    }
+
+    private async Task AgregarUsuario()
+    {
+        var httpClient = new HttpClient();
+
+        try
+        {
+            if (tipoUsuario == "Estudiante")
+            {
+                await httpClient.PostAsJsonAsync("http://host.docker.internal:5000/api/Estudiantes", new Estudiante { EstNombre = nombreUsuario, EstCorreo = correoUsuario });
+            }
+            else if (tipoUsuario == "Profesor")
+            {
+                await httpClient.PostAsJsonAsync("http://host.docker.internal:5000/api/Profesores", new Profesore { ProNombre = nombreUsuario, ProCorreo = correoUsuario });
+            }
+
+        }
+        catch (Exception)
+        {
+            mostrarMensajeUsuarioError = false;
+        }
+
+        mostrarMensajeUsuario = true;
+    }
+
+
+
+    private async Task AgregarCurso()
+    {
+        var httpClient = new HttpClient();
+
+        try
+        {
+            await httpClient.PostAsJsonAsync("http://host.docker.internal:9000/api/Cursos", new Curso
+                {
+                    CurNombre = nombreCurso,
+                    CurDescripcion = descripcionCurso,
+                    CurProfesorId = profesorCursoId
+                });
+
+        }
+        catch (Exception)
+        {
+            mostrarMensajeCursoError = false;
+        }
+
+        mostrarMensajeCurso = true;
+    }
+
+
+    private async Task AgregarCalificacion()
+    {
+        var httpClient = new HttpClient();
+
+        try
+        {
+            await httpClient.PostAsJsonAsync("http://host.docker.internal:10000/api/Calificaciones", new Calificacione
+                {
+                    CalEstudianteId = calEstudianteId,
+                    CalCursoId = calCursoId,
+                    CalNota = calNota
+                });
+
+        }
+        catch (Exception)
+        {
+            mostrarMensajeCalificacionError = false;
+        }
+
+        mostrarMensajeCalificacion = true;
+    }
+
+}

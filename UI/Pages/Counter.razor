@@ -1,0 +1,490 @@
+﻿@page "/reporte"
+@using Model;
+@using System.Net;
+@inject NavigationManager NavigationManager
+
+<PageTitle>Reportes</PageTitle>
+
+<h1>Plataforma Educativa Online</h1>
+<br />  
+<br />
+<h2>Estudiantes</h2>
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Nombre</th>
+            <th>Correo</th>
+            <th>Acciones</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var estudiante in estudiantes)
+        {
+            <tr>
+                <td>@estudiante.EstId</td>
+                <td>@estudiante.EstNombre</td>
+                <td>@estudiante.EstCorreo</td>
+                <td>
+                    <button class="btn btn-warning" @onclick="() => EditarEstudiante(estudiante.EstId)">Editar</button>
+                    <button class="btn btn-danger" @onclick="() => EliminarEstudiante(estudiante.EstId)">Eliminar</button>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+<br />
+@if(tieneDependenciasEstudiante)
+{
+    <div class="alert alert-danger" role="alert">
+        No se puede eliminar el estudiante porque tiene calificaciones asociadas.
+    </div>
+}
+
+@if (mostrarReporteEstudiantes)
+{
+    <h3>Informe de Estudiantes</h3>
+    <ul>
+        @foreach (var reporteEstudiante in reportesEstudiantes)
+        {
+            <li>
+                Nombre del estudiante: @reporteEstudiante.Estudiante.EstNombre,
+                Cursos aprobados con más de 7: @reporteEstudiante.CursosAprobados,
+                Cursos totales: @reporteEstudiante.CursosTotales
+            </li>
+        }
+    </ul>
+}
+else
+{
+    <button @onclick="ObtenerReportesEstudiantes" class="btn btn-primary">Reporte</button>
+    <br />
+}
+
+<h2>Profesores</h2>
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Nombre</th>
+            <th>Correo</th>
+            <th>Acciones</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var profesor in profesores)
+        {
+            <tr>
+                <td>@profesor.ProId</td>
+                <td>@profesor.ProNombre</td>
+                <td>@profesor.ProCorreo</td>
+                <td>
+                    <button class="btn btn-warning" @onclick="() => EditarProfesor(profesor.ProId)">Editar</button>
+                    <button class="btn btn-danger" @onclick="() => EliminarProfesor(profesor.ProId)">Eliminar</button>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+<br />
+
+@if(tieneDependenciasProfesor)
+{
+    <div class="alert alert-danger" role="alert">
+        No se puede eliminar el profesor porque tiene cursos asociados.
+    </div>
+}
+
+@if (mostrarReporteProfesores)
+{
+    <h3>Informe de Profesores y Alumnos</h3>
+    <ul>
+        @foreach (var profesorConEstudiantes in profesoresConEstudiantes)
+        {
+            <li>
+                Profesor: @profesorConEstudiantes.Profesor.ProNombre
+                <ul>
+                    @foreach (var alumno in profesorConEstudiantes.Estudiantes)
+                    {
+                        <li>@alumno.EstNombre</li>
+                    }
+                </ul>
+            </li>
+        }
+    </ul>
+}
+else
+{
+    <button @onclick="ObtenerEstudiantesDelProfesor" class="btn btn-primary">Reporte</button>
+    <br />
+}
+
+<h2>Cursos</h2>
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>ID curso</th>
+            <th>Nombre</th>
+            <th>Descripción</th>
+            <th>Profesor</th>
+            <th>Acciones</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var curso in cursos)
+        {
+            <tr>
+                <td>@curso.CurId</td>
+                <td>@curso.CurNombre</td>
+                <td>@curso.CurDescripcion</td>
+                <td>@curso.CurProfesor.ProNombre</td>
+                <td>
+                    <button class="btn btn-warning" @onclick="() => EditarCurso(curso.CurId)">Editar</button>
+                    <button class="btn btn-danger" @onclick="() => EliminarCurso(curso.CurId)">Eliminar</button>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+<br />
+
+@if(tieneDependenciasCurso)
+{
+    <div class="alert alert-danger" role="alert">
+        No se puede eliminar el curso porque tiene calificaciones asociadas.
+    </div>
+}
+
+@if (mostrarReporteCursos)
+{
+    <h3>Informe de Cursos</h3>
+    <ul>
+        @foreach (var curso in cursosConEstudiantes)
+        {
+            <li>
+                Curso: @curso.NombreCurso, ID: @curso.CursoId, Cantidad de estudiantes: @curso.CantidadEstudiantes
+            </li>
+        }
+    </ul>
+}else{
+    <button @onclick="ObtenerCursosConEstudiantes" class="btn btn-primary">Reporte</button>
+    <br />
+}
+<br />
+
+<h2>Calificaciones</h2>
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>ID calificación</th>
+            <th>Estudiante</th>
+            <th>Curso</th>
+            <th>Nota</th>
+            <th>Acciones</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var calificacion in calificaciones)
+        {
+            <tr>
+                <td>@calificacion.CalId</td>
+                <td>@calificacion.CalEstudiante.EstNombre</td>
+                <td>@calificacion.CalCurso.CurNombre</td>
+                <td>@calificacion.CalNota</td>
+                <td>
+                    <button class="btn btn-warning" @onclick="() => EditarCalificacion(calificacion.CalId)">Editar</button>
+                    <button class="btn btn-danger" @onclick="() => EliminarCalificacion(calificacion.CalId)">Eliminar</button>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+@if(mostrarReporteCalificaciones)
+{
+    <h3>Informe de Calificaciones</h3>
+    <ul>
+        @foreach (var calificacion in calificacionesPorProfesor)
+        {
+            <li>
+                Profesor: @calificacion.Profesor.ProNombre, Cantidad de calificaciones corregidas: @calificacion.CantidadCalificaciones
+            </li>
+        }
+    </ul>
+}else{
+    <button @onclick="ObtenerCalificacionesPorProfesor" class="btn btn-primary">Reporte</button>
+    <br />
+}
+
+@code {
+    List<Estudiante> estudiantes = new List<Estudiante>();
+    List<Profesore> profesores = new List<Profesore>();
+    List<Curso> cursos = new List<Curso>();
+    List<Calificacione> calificaciones = new List<Calificacione>();
+
+    bool mostrarReporteCursos = false;
+    bool mostrarReporteEstudiantes = false;
+    bool mostrarReporteProfesores = false;
+    bool mostrarReporteCalificaciones = false;
+
+    bool tieneDependenciasEstudiante = false;
+    bool tieneDependenciasProfesor = false;
+    bool tieneDependenciasCurso = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var httpClient = new HttpClient();
+
+        var estudiantesResponse = await httpClient.GetFromJsonAsync<List<Estudiante>>("http://host.docker.internal:5000/api/Estudiantes");
+        if (estudiantesResponse != null)
+        {
+            estudiantes = estudiantesResponse;
+        }
+
+        var profesoresResponse = await httpClient.GetFromJsonAsync<List<Profesore>>("http://host.docker.internal:5000/api/Profesores");
+        if (profesoresResponse != null)
+        {
+            profesores = profesoresResponse;
+        }
+
+        var cursosResponse = await httpClient.GetFromJsonAsync<List<Curso>>("http://host.docker.internal:9000/api/Cursos");
+        if (cursosResponse != null)
+        {
+            cursos = cursosResponse;
+        }
+
+        var calificacionesResponse = await httpClient.GetFromJsonAsync<List<Calificacione>>("http://host.docker.internal:10000/api/Calificaciones");
+        if (calificacionesResponse != null)
+        {
+            calificaciones = calificacionesResponse;
+        }
+    }
+
+
+
+    //para reportes de estudiantes:
+    private List<ReporteEstudiante> reportesEstudiantes = new List<ReporteEstudiante>();
+
+    private async Task ObtenerReportesEstudiantes()
+    {
+        var httpClient = new HttpClient();
+
+        try
+        {
+            reportesEstudiantes = await httpClient.GetFromJsonAsync<List<ReporteEstudiante>>("http://host.docker.internal:5000/api/Estudiantes/reporte");
+            mostrarReporteEstudiantes = true;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error al obtener reportes de estudiantes: {ex.Message}");
+        }
+    }
+
+
+    //para reportes de profesores:
+
+    private List<ProfesorConEstudiantes> profesoresConEstudiantes = new List<ProfesorConEstudiantes>();
+
+    private async Task ObtenerEstudiantesDelProfesor()
+    {
+        var httpClient = new HttpClient();
+
+        try
+        {
+            profesoresConEstudiantes = await httpClient.GetFromJsonAsync<List<ProfesorConEstudiantes>>("http://host.docker.internal:5000/api/Profesores/reporte");
+            mostrarReporteProfesores = true;
+        }
+        catch (Exception ex)
+        {
+            // Manejo de errores
+            Console.WriteLine($"Error al obtener profesores con estudiantes: {ex.Message}");
+        }
+    }
+
+
+
+    //para reportes de cursos:
+
+    private List<CursoConEstudiantes> cursosConEstudiantes = new List<CursoConEstudiantes>();
+
+    private async Task ObtenerCursosConEstudiantes()
+    {
+        var httpClient = new HttpClient();
+
+        try
+        {
+            cursosConEstudiantes = await httpClient.GetFromJsonAsync<List<CursoConEstudiantes>>("http://host.docker.internal:9000/api/Cursos/reporte");
+            mostrarReporteCursos = true;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error al obtener cursos con estudiantes: {ex.Message}");
+        }
+    }
+
+    //para reportes de calificaciones:
+    //cantidad de calificaciones corregidas por cada profesor (devuelve entero por cada profesor)
+
+    private List<CalificacionesPorProfesor> calificacionesPorProfesor = new List<CalificacionesPorProfesor>();
+
+    private async Task ObtenerCalificacionesPorProfesor()
+    {
+        var httpClient = new HttpClient();
+
+        try
+        {
+            calificacionesPorProfesor = await httpClient.GetFromJsonAsync<List<CalificacionesPorProfesor>>("http://host.docker.internal:10000/api/Calificaciones/reporte");
+            mostrarReporteCalificaciones = true;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error al obtener calificaciones por profesor: {ex.Message}");
+        }
+    }
+
+    //para eliminar estudiantes:
+    private async Task EliminarEstudiante(int id)
+    {
+        var httpClient = new HttpClient();
+
+        try
+        {
+            //corroborar si existen dependencias antes de eliminar
+            var dependeciasResponse = await httpClient.GetFromJsonAsync<bool>($"http://host.docker.internal:10000/api/Calificaciones/estudiante/{id}");
+
+            if (dependeciasResponse)
+            {
+                tieneDependenciasEstudiante = true;
+                return;
+            }
+
+            var response = await httpClient.DeleteAsync($"http://host.docker.internal:5000/api/Estudiantes/{id}");
+            if (response.StatusCode == HttpStatusCode.OK)
+            {
+                var estudiantesResponse = await httpClient.GetFromJsonAsync<List<Estudiante>>("http://host.docker.internal:5000/api/Estudiantes");
+                if (estudiantesResponse != null)
+                {
+                    estudiantes = estudiantesResponse;
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error al eliminar estudiante: {ex.Message}");
+        }
+    }
+
+    //para editar estudiantes:
+    private void EditarEstudiante(int estudianteId)
+    {
+        NavigationManager.NavigateTo($"/editar/{estudianteId}");
+    }
+
+    //para eliminar profesores:
+    private async Task EliminarProfesor(int id)
+    {
+        var httpClient = new HttpClient();
+
+        try
+        {
+
+            //corroborar si existen dependencias antes de eliminar
+            var dependeciasResponse = await httpClient.GetFromJsonAsync<bool>($"http://host.docker.internal:9000/api/Cursos/profesor/{id}");
+
+            if (dependeciasResponse)
+            {
+                tieneDependenciasProfesor = true;
+                return;
+            }
+
+            var response = await httpClient.DeleteAsync($"http://host.docker.internal:5000/api/Profesores/{id}");
+            if (response.StatusCode == HttpStatusCode.OK)
+            {
+                var profesoresResponse = await httpClient.GetFromJsonAsync<List<Profesore>>("http://host.docker.internal:5000/api/Profesores");
+                if (profesoresResponse != null)
+                {
+                    profesores = profesoresResponse;
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error al eliminar profesor: {ex.Message}");
+        }
+    }
+
+    //para editar profesores:
+    private void EditarProfesor(int profesorId)
+    {
+        NavigationManager.NavigateTo($"/editarProfesor/{profesorId}");
+    }
+
+    //para eliminar cursos:
+    private async Task EliminarCurso(int id)
+    {
+        var httpClient = new HttpClient();
+
+        try
+        {
+            //corroborar si existen dependencias antes de eliminar
+            var dependeciasResponse = await httpClient.GetFromJsonAsync<bool>($"http://host.docker.internal:10000/api/Calificaciones/curso/{id}");
+
+            if(dependeciasResponse)
+            {
+                tieneDependenciasCurso = true;
+                return;
+            }
+
+            var response = await httpClient.DeleteAsync($"http://host.docker.internal:9000/api/Cursos/{id}");
+            if (response.StatusCode == HttpStatusCode.OK)
+            {
+                var cursosResponse = await httpClient.GetFromJsonAsync<List<Curso>>("http://host.docker.internal:9000/api/Cursos");
+                if (cursosResponse != null)
+                {
+                    cursos = cursosResponse;
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error al eliminar curso: {ex.Message}");
+        }
+    }
+
+    //para editar cursos:
+    private void EditarCurso(int cursoId)
+    {
+        NavigationManager.NavigateTo($"/editarCurso/{cursoId}");
+    }
+
+    //para eliminar calificaciones:
+    private async Task EliminarCalificacion(int id)
+    {
+        var httpClient = new HttpClient();
+
+        try
+        {
+            var response = await httpClient.DeleteAsync($"http://host.docker.internal:10000/api/Calificaciones/{id}");
+            if (response.StatusCode == HttpStatusCode.OK)
+            {
+                var calificacionesResponse = await httpClient.GetFromJsonAsync<List<Calificacione>>("http://host.docker.internal:10000/api/Calificaciones");
+                if (calificacionesResponse != null)
+                {
+                    calificaciones = calificacionesResponse;
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error al eliminar calificacion: {ex.Message}");
+        }
+    }
+
+    //para editar calificaciones:
+    private void EditarCalificacion(int calificacionId)
+    {
+        NavigationManager.NavigateTo($"/editarCalificacion/{calificacionId}");
+    }
+
+}
+
